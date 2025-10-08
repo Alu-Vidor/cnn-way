@@ -4,14 +4,17 @@ export type KernelInfo = {
   id: string;
   label: string;
   description: string;
+  studentExplanation: string;
   matrix: Matrix;
 };
 
 export const HANDCRAFTED_KERNELS: KernelInfo[] = [
   {
     id: 'vertical-edge',
-    label: 'Vertical Edge Detector',
-    description: 'Highlights tall strokes such as the body of a 1 or the sides of a 0.',
+    label: 'Вертикальный фильтр',
+    description: 'Находит высокие вертикальные штрихи: палочку у «1» или стенки у «0».',
+    studentExplanation:
+      'Представь линейку, которую мы держим вертикально. Если под ней есть тёмная полоска, фильтр загорается.',
     matrix: [
       [1, 0, -1],
       [1, 0, -1],
@@ -20,8 +23,10 @@ export const HANDCRAFTED_KERNELS: KernelInfo[] = [
   },
   {
     id: 'horizontal-edge',
-    label: 'Horizontal Edge Detector',
-    description: 'Emphasises horizontal bars that digits like 2, 3, 4, or 7 rely on.',
+    label: 'Горизонтальный фильтр',
+    description: 'Замечает горизонтальные перекладины, важные для «2», «3», «4» или «7».',
+    studentExplanation:
+      'Этот фильтр словно ищет полочки и крышечки: если в цифре есть полоска поперёк, он сообщает об этом.',
     matrix: [
       [1, 1, 1],
       [0, 0, 0],
@@ -30,8 +35,10 @@ export const HANDCRAFTED_KERNELS: KernelInfo[] = [
   },
   {
     id: 'main-diagonal',
-    label: 'Main Diagonal Detector',
-    description: 'Responds to strokes going from top-left to bottom-right, useful for 2, 3, 7, and 9.',
+    label: 'Главная диагональ',
+    description: 'Ищет линии сверху слева вниз направо: такие штрихи есть у «2», «3», «7» и «9».',
+    studentExplanation:
+      'Подумай о наклонной линии, которая спускается, как горка. Когда цифра содержит такую линию, фильтр видит её.',
     matrix: [
       [0, 1, 1],
       [-1, 0, 1],
@@ -40,8 +47,10 @@ export const HANDCRAFTED_KERNELS: KernelInfo[] = [
   },
   {
     id: 'anti-diagonal',
-    label: 'Anti-Diagonal Detector',
-    description: 'Catches strokes that go from bottom-left to top-right, common in 4 and 9.',
+    label: 'Обратная диагональ',
+    description: 'Реагирует на линии снизу слева вверх направо, например у «4» и «9».',
+    studentExplanation:
+      'Это как наклонная лестница, которая поднимается в гору. Если цифра поднимает линию вверх вправо, фильтр это замечает.',
     matrix: [
       [1, 1, 0],
       [1, 0, -1],
@@ -50,8 +59,10 @@ export const HANDCRAFTED_KERNELS: KernelInfo[] = [
   },
   {
     id: 'stroke-enhancer',
-    label: 'Stroke Enhancer',
-    description: 'Boosts thick strokes and suppresses the background to isolate the digit.',
+    label: 'Усилитель штрихов',
+    description: 'Делает жирные штрихи ярче, а фон тише, чтобы выделить цифру.',
+    studentExplanation:
+      'Представь маркер, который подчёркивает самые яркие части твоего рисунка и стирает лишние пятна вокруг.',
     matrix: [
       [0, -1, 0],
       [-1, 5, -1],
@@ -60,8 +71,10 @@ export const HANDCRAFTED_KERNELS: KernelInfo[] = [
   },
   {
     id: 'blob-detector',
-    label: 'Blob Detector',
-    description: 'Acts like a blur that keeps filled loops such as the belly of an 8 or 0.',
+    label: 'Фильтр пятен',
+    description: 'Любит круглые пятна и петельки — например, «животик» у «8» или «0».',
+    studentExplanation:
+      'Он смотрит на большие закрашенные области. Чем больше залитая часть, тем сильнее реакция фильтра.',
     matrix: [
       [1, 1, 1],
       [1, 1, 1],
