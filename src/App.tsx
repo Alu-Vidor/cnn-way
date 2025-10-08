@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DrawingPad from './components/DrawingPad';
 import MatrixGrid from './components/MatrixGrid';
 import {
@@ -292,6 +292,7 @@ function formatPercent(value: number): string {
 
 function App() {
   const [rawMatrix, setRawMatrix] = useState<Matrix>(() => createMatrix(MATRIX_SIZE, MATRIX_SIZE, 0));
+  const [activeKernelIndex, setActiveKernelIndex] = useState(0);
 
   const templateFeatures = useMemo(() => computeTemplateFeatureSets(), []);
   const normalizedInput = useMemo(() => normalizeDigitMatrix(rawMatrix), [rawMatrix]);
@@ -321,6 +322,24 @@ function App() {
     () => computePredictions(featureVector, pixelVector, templateFeatures),
     [featureVector, pixelVector, templateFeatures],
   );
+  useEffect(() => {
+    setActiveKernelIndex((current) => {
+      if (!featureDisplays.length) {
+        return 0;
+      }
+      return Math.min(current, featureDisplays.length - 1);
+    });
+  }, [featureDisplays.length]);
+
+  const goToPreviousKernel = () => {
+    setActiveKernelIndex((index) => Math.max(0, index - 1));
+  };
+
+  const goToNextKernel = () => {
+    setActiveKernelIndex((index) => Math.min(featureDisplays.length - 1, index + 1));
+  };
+
+  const activeFeature = featureDisplays[activeKernelIndex];
 
   const topPrediction = predictions[0];
   const referenceTemplate = topPrediction
@@ -368,25 +387,59 @@ function App() {
         <section className="panel">
           <div className="panel__header">
             <h2>2. Что видит каждый фильтр</h2>
-            <p>Каждый фильтр реагирует на собственный тип штрихов. Чем темнее карта, тем сильнее активация.</p>
+            <p>
+              Мы рассмотрим фильтры по очереди: каждый ищет свой тип штриха и показывает реакцию после трёх шагов
+              обработки.
+            </p>
           </div>
-          <div className="kernels-grid">
-            {featureDisplays.map((feature) => (
-              <article key={feature.kernel.id} className="kernel-card">
+          <div className="kernel-stepper">
+            <div className="kernel-stepper__controls">
+              <div className="kernel-stepper__progress">
+                Шаг {featureDisplays.length ? activeKernelIndex + 1 : 0} из {featureDisplays.length}
+              </div>
+              <div className="kernel-stepper__buttons">
+                <button
+                  type="button"
+                  className="kernel-stepper__button"
+                  onClick={goToPreviousKernel}
+                  disabled={activeKernelIndex === 0}
+                >
+                  Назад
+                </button>
+                <button
+                  type="button"
+                  className="kernel-stepper__button"
+                  onClick={goToNextKernel}
+                  disabled={activeKernelIndex >= featureDisplays.length - 1}
+                >
+                  Вперёд
+                </button>
+              </div>
+            </div>
+            {activeFeature ? (
+              <article key={activeFeature.kernel.id} className="kernel-card kernel-card--single">
                 <header className="kernel-card__header">
-                  <h3>{feature.kernel.label}</h3>
+                  <div>
+                    <span className="kernel-card__subtitle">Фильтр {activeKernelIndex + 1}</span>
+                    <h3>{activeFeature.kernel.label}</h3>
+                  </div>
                   <span className="kernel-card__strength">
-                    сила отклика: {formatPercent(clamp(feature.strength, 0, 1))}
+                    сила отклика: {formatPercent(clamp(activeFeature.strength, 0, 1))}
                   </span>
                 </header>
-                <p className="kernel-card__description">{feature.kernel.description}</p>
+                <p className="kernel-card__explanation">{activeFeature.kernel.studentExplanation}</p>
+                <p className="kernel-card__note">{activeFeature.kernel.description}</p>
                 <div className="kernel-card__maps">
-                  <MatrixGrid matrix={feature.convolution} title="Свертка" variant="small" />
-                  <MatrixGrid matrix={feature.activation} title="После ReLU" variant="small" />
-                  <MatrixGrid matrix={feature.pooled} title="После max-pooling" variant="small" />
+                  <MatrixGrid matrix={activeFeature.convolution} title="Шаг 1: свёртка" variant="small" />
+                  <MatrixGrid matrix={activeFeature.activation} title="Шаг 2: ReLU" variant="small" />
+                  <MatrixGrid matrix={activeFeature.pooled} title="Шаг 3: max-pooling" variant="small" />
                 </div>
               </article>
-            ))}
+            ) : (
+              <p className="kernel-stepper__empty">
+                Нарисуй цифру слева: как только появятся штрихи, мы начнём показ фильтров.
+              </p>
+            )}
           </div>
         </section>
 
